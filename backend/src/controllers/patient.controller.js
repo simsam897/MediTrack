@@ -1,4 +1,5 @@
 import { Patient } from "../models/patient.model.js";
+import { Visit } from "../models/visit.model.js";
 
 export const createPatient = async (req, res, next) => {
   try {
@@ -69,6 +70,67 @@ export const getAllPatient = async (req, res, next) => {
       data: {
         count: patients.length,
         patients,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getPatientByPatientId = async (req, res, next) => {
+  try {
+    const { patientId } = req.params;
+
+    const patient = await Patient.findOne({ patientId });
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "patient id not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Patient fetched successfully",
+      data: {
+        patient,
+        name: patient.name,
+        phone: patient.phone,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const getPatientProfile = async (req, res, next) => {
+  try {
+    const { patientId } = req.params;
+const patient = await Patient.findOne({ patientId });
+
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        message: "patient not found",
+      });
+    }
+
+    const visits = await Visit.find({ patient: patient._id }).sort({
+      visitDate: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Pateint Profile fetched  succesfully ",
+      data: {
+        patient,
+        visits,
       },
     });
   } catch (error) {
