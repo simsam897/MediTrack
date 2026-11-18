@@ -112,7 +112,7 @@ export const getPatientByPatientId = async (req, res, next) => {
 export const getPatientProfile = async (req, res, next) => {
   try {
     const { patientId } = req.params;
-const patient = await Patient.findOne({ patientId });
+    const patient = await Patient.findOne({ patientId });
 
     if (!patient) {
       return res.status(404).json({
@@ -132,6 +132,61 @@ const patient = await Patient.findOne({ patientId });
         patient,
         visits,
       },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updatePatient = async (req, res, next) => {
+  try {
+    const { patientId } = req.params;
+
+    const {
+      name,
+      dateOfBirth,
+      gender,
+      phone,
+      email,
+      address,
+      bloodGroup,
+      emergencyContactName,
+      emergencyContactPhone,
+    } = req.body;
+
+    const updatedPatient = await Patient.findOneAndUpdate(
+      { patientId },
+      {
+        name,
+        dateOfBirth,
+        gender,
+        phone,
+        email,
+        address,
+        bloodGroup,
+        emergencyContactName,
+        emergencyContactPhone,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updatedPatient) {
+      return res.status(404).json({
+        success: false,
+        message: "updating patient failed",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "patient updated successfully",
+      data: updatedPatient,
     });
   } catch (error) {
     return res.status(500).json({
