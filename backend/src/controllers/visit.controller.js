@@ -97,3 +97,106 @@ export const getVisits = async (req, res, next) => {
     });
   }
 };
+
+export const getSingleVisit = async (req, res, next) => {
+  try {
+    const { visitId } = req.params;
+
+    const visit = await Visit.findById(visitId);
+
+    if (!visit) {
+      return res.status(404).json({
+        success: false,
+        message: "Visit not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "visit fetched successfully",
+      data: visit,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const updateVisit = async (req, res, next) => {
+  try {
+    const { visitId } = req.params;
+
+    const { patient, visitDate, symptoms, diagnosis, doctorNotes, medicines } =
+      req.body;
+
+    const visit = await Visit.findById(visitId);
+
+    if (!visit) {
+      return res.status(404).json({
+        success: false,
+        message: "Visit not found",
+      });
+    }
+
+    if (!Array.isArray(medicines)) {
+      return res.status(400).json({
+        success: false,
+        message: "Medicines must be an array",
+      });
+    }
+
+    for (const medicine of medicines) {
+      if (
+        !medicine.name ||
+        !Number.isFinite(medicine.quantity) ||
+        medicine.quantity < 1 ||
+        !Number.isFinite(medicine.actualPrice) ||
+        medicine.actualPrice < 0 ||
+        !Number.isFinite(medicine.chargedPrice) ||
+        medicine.chargedPrice < 0
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid medicine details",
+        });
+      }
+    }
+
+    const totalActualCost = medicines.reduce(
+      (total, medicine) => total + medicine.quantity * medicine.actualPrice,
+      0,
+    );
+
+    const totalCharged = medicines.reduce(
+      (total, medicine) => total + medicine.quantity * medicine.chargedPrice,
+      0,
+    );
+    const updatedVisit = await Visit.findByIdAndUpdate(
+      visitId,
+      {
+        patient,
+        visitDate,
+        symptoms,
+        diagnosis,
+        doctorNotes,
+        medicines,
+        totalActualCost,
+        totalCharged,
+      },
+      { new: true, runValidators: true },
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "visit updated successfully",
+      data: updatedVisit,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
