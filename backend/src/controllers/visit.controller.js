@@ -200,3 +200,29 @@ export const updateVisit = async (req, res, next) => {
     });
   }
 };
+
+export const deleteVisit = async (req, res, next) => {
+  try {
+    const { visitId } = req.params;
+
+    const deleteVisit = await Visit.findByIdAndDelete(visitId);
+
+    if (!deleteVisit) {
+      return res.status(404).json({
+        success: false,
+        message: "visit not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "visit deleted successfully",
+      data: deleteVisit,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
